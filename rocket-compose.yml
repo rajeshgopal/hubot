@@ -21,3 +21,7 @@ services:
       - 3000:3000
     networks:
       - mynet
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASS=hubot123!
+      - ADMIN_EMAIL=admin@testhubot.com
