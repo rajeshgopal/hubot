@@ -1,0 +1,23 @@
+version: "3"
+networks:
+  mynet:
+    driver: overlay
+services:
+  db:
+    image: mongo:3.0
+    volumes:
+      - /opt/mongo/data/runtime/db:/data/db
+      - /opt/mongo/data/dump:/dump
+    command: mongod --smallfiles
+    networks:
+      - mynet
+
+  rocketchat:
+    image: rocketchat/rocket.chat:latest
+    environment:
+      - MONGO_URL=mongodb://db:27017/rocketchat
+      - ROOT_URL=http://localhost
+    ports:
+      - 3000:3000
+    networks:
+      - mynet
