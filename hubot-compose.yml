@@ -7,7 +7,7 @@ services:
   hubot:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-hubot
     #image: rocketchat/hubot-rocketchat:latest
     image: hubotnew_hubot:latest
     environment:

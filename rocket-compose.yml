@@ -17,11 +17,10 @@ services:
     environment:
       - MONGO_URL=mongodb://db:27017/rocketchat
       - ROOT_URL=http://localhost
-    ports:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASS=irocket123!
+      - ADMIN_EMAIL=admin@testhubot.com 
+   ports:
       - 3000:3000
     networks:
       - mynet
-    environment:
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASS=hubot123!
-      - ADMIN_EMAIL=admin@testhubot.com
