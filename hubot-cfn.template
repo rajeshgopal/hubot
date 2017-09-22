@@ -1,0 +1,153 @@
+Description: 'AWS CloudFormation to install hubot and rocket.chat on docker containers'
+Parameters:
+  MinNumInstances:
+    Type: Number
+    Default: '1'
+    Description: Minimum number of instances auto scaler should maintain
+  MaxNumInstances:
+    Type: Number
+    Default: '1'
+    Description: Maximum number of instances auto scaler can create
+  DesiredNumInstances:
+    Type: Number
+    Default: '1'
+    Description: Number of instances we would like right now
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.small
+    ConstraintDescription: must be a valid EC2 instance type.
+  IAMRole:
+    Description: IAM profile/role instances should have
+    Type: String
+    Default: DEV-EC2-Role
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  ImageId:
+    Description: AMI Id
+    Type: String
+    Default: ami-4fffc834
+  VPCId:
+    Description: VPC
+    Type: String
+    Default: vpc-171c6f73
+  Subnet:
+    Description: subnetid
+    Type: List<AWS::EC2::Subnet::Id>
+    Default: subnet-0b7de936
+Resources:
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              docker: []
+              git: []
+          files:
+            /tmp/createuser.py:
+              content: !Sub |
+                "import requests \n"
+
+                "url = 'http://localhost:3000' \n
+                "input = {'user': 'admin', 'password': 'hubot123!'} \n"
+                "login = requests.post(url + '/api/v1/login/', json=input) \n"
+                "auth = login.json() \n"
+                "token = auth['data']['authToken'] \n"
+                "id = auth['data']['userId'] \n"
+                "if auth['status'] == 'success': \n"
+                "  newuser = {'name': 'bot', 'email': 'bot@testhubot.com', 'password': 'hubot123', 'username': 'myhubot', 'roles': ['bot']} \n"
+                "  headers = {'X-Auth-Token': '%s' %token, 'X-User-Id': '%s' %id, 'Content-type': 'application/json'} \n"
+                "  user_create = requests.post(url + '/api/v1/users.create', json=newuser, headers=headers) \n"
+    
+              mode: "000644"
+              owner: "root"
+              group: "root"
+          commands:
+            test:
+              command: "curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose"
+
+    Properties:
+      AssociatePublicIpAddress: true
+      EbsOptimized: false
+      IamInstanceProfile:
+        Ref: IAMRole
+      ImageId:
+        Ref: ImageId
+      InstanceMonitoring: false
+      InstanceType:
+        Ref: InstanceType
+      KeyName:
+        Ref: KeyName
+      PlacementTenancy: default
+      SecurityGroups:
+      - Ref: InstanceSecurityGroup
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - ''
+          - - "#!/bin/bash -x \n"
+            - 'yum install -y aws-cfn-bootstrap'
+            - "# Install the files and packages from the metadata\n"
+            - "/opt/aws/bin/cfn-init -v "
+            - "         --stack "
+            - Ref: AWS::StackName
+            - "         --resource LaunchConfiguration "
+            - "         --region "
+            - Ref: AWS::Region
+            - "\n"
+            - 'service docker start \n'
+            - 'docker swarm init \n'
+            - 'cd /opt \n'
+            - 'git clone https://github.com/rajeshgopal/hubot.git \n'
+            - '/usr/local/bin/docker-compose -f rocket-compose.yml -p rocket up -d \n'
+            - 'sleep 120 \n'
+            - 'python /tmp/createuser.py \n'
+            - '/usr/local/bin/docker-compose -f hubot-compose.yml -p rocket up -d \n'
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      Cooldown: 480
+      DesiredCapacity:
+        Ref: DesiredNumInstances
+      HealthCheckGracePeriod: 300
+      HealthCheckType: EC2
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      MaxSize:
+        Ref: MaxNumInstances
+      MinSize:
+        Ref: MinNumInstances
+      Tags:
+      - Key: Name
+        Value: hubot-docker-setup
+        PropagateAtLaunch: 'true'
+      VPCZoneIdentifier:
+        Ref: Subnet
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 
+          Ref: SSHLocation
+      - IpProtocol: tcp
+        FromPort: 3000
+        ToPort: 3000
+        CidrIp: 
+          Ref: SSHLocation
