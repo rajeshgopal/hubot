@@ -60,7 +60,7 @@ Resources:
               content: !Sub |
                 "import requests \n"
 
-                "url = 'http://localhost:3000' \n
+                "url = 'http://localhost:3000' \n"
                 "input = {'user': 'admin', 'password': 'hubot123!'} \n"
                 "login = requests.post(url + '/api/v1/login/', json=input) \n"
                 "auth = login.json() \n"
@@ -111,10 +111,10 @@ Resources:
             - 'docker swarm init \n'
             - 'cd /opt \n'
             - 'git clone https://github.com/rajeshgopal/hubot.git \n'
-            - '/usr/local/bin/docker-compose -f rocket-compose.yml -p rocket up -d \n'
+            - '/usr/local/bin/docker-compose -f hubot/rocket-compose.yml -p rocket up -d \n'
             - 'sleep 120 \n'
             - 'python /tmp/createuser.py \n'
-            - '/usr/local/bin/docker-compose -f hubot-compose.yml -p rocket up -d \n'
+            - '/usr/local/bin/docker-compose -f hubot/hubot-compose.yml -p rocket up -d \n'
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
