@@ -24,7 +24,7 @@ Parameters:
   IAMRole:
     Description: IAM profile/role instances should have
     Type: String
-    Default: DEV-EC2-Role
+    Default: Dev-EC2-Role
   SSHLocation:
     Description: The IP address range that can be used to SSH to the EC2 instances
     Type: String
@@ -58,18 +58,18 @@ Resources:
           files:
             /tmp/createuser.py:
               content: !Sub |
-                "import requests \n"
+                import requests
 
-                "url = 'http://localhost:3000' \n"
-                "input = {'user': 'admin', 'password': 'hubot123!'} \n"
-                "login = requests.post(url + '/api/v1/login/', json=input) \n"
-                "auth = login.json() \n"
-                "token = auth['data']['authToken'] \n"
-                "id = auth['data']['userId'] \n"
-                "if auth['status'] == 'success': \n"
-                "  newuser = {'name': 'bot', 'email': 'bot@testhubot.com', 'password': 'hubot123', 'username': 'myhubot', 'roles': ['bot']} \n"
-                "  headers = {'X-Auth-Token': '%s' %token, 'X-User-Id': '%s' %id, 'Content-type': 'application/json'} \n"
-                "  user_create = requests.post(url + '/api/v1/users.create', json=newuser, headers=headers) \n"
+                url = 'http://localhost:3000'
+                input = {'user': 'admin', 'password': 'irocket123!'}
+                login = requests.post(url + '/api/v1/login/', json=input)
+                auth = login.json()
+                token = auth['data']['authToken']
+                id = auth['data']['userId']
+                if auth['status'] == 'success':
+                  newuser = {'name': 'bot', 'email': 'bot@testhubot.com', 'password': 'hubot123', 'username': 'myhubot', 'roles': ['bot', 'bot']}
+                  headers = {'X-Auth-Token': '%s' %token, 'X-User-Id': '%s' %id}
+                  user_create = requests.post(url + '/api/v1/users.create', json=newuser, headers=headers)
     
               mode: "000644"
               owner: "root"
@@ -107,14 +107,14 @@ Resources:
             - "         --region "
             - Ref: AWS::Region
             - "\n"
-            - 'service docker start \n'
-            - 'docker swarm init \n'
-            - 'cd /opt \n'
-            - 'git clone https://github.com/rajeshgopal/hubot.git \n'
-            - '/usr/local/bin/docker-compose -f hubot/rocket-compose.yml -p rocket up -d \n'
-            - 'sleep 120 \n'
-            - 'python /tmp/createuser.py \n'
-            - '/usr/local/bin/docker-compose -f hubot/hubot-compose.yml -p rocket up -d \n'
+            - "service docker start \n"
+            - "docker swarm init \n"
+            - "cd /opt \n"
+            - "git clone https://github.com/rajeshgopal/hubot.git \n"
+            - "/usr/local/bin/docker-compose -f hubot/rocket-compose.yml -p rocket up -d \n"
+            - "sleep 120 \n"
+            - "python /tmp/createuser.py \n"
+            - "/usr/local/bin/docker-compose -f hubot/hubot-compose.yml -p hubot up -d \n"
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -140,6 +140,8 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable SSH access via port 22
+      VpcId:
+        Ref: VPCId
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: 22
