@@ -98,7 +98,7 @@ Resources:
           Fn::Join:
           - ''
           - - "#!/bin/bash -x \n"
-            - 'yum install -y aws-cfn-bootstrap'
+            - "yum install -y aws-cfn-bootstrap \n"
             - "# Install the files and packages from the metadata\n"
             - "/opt/aws/bin/cfn-init -v "
             - "         --stack "
