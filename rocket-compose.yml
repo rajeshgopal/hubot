@@ -1,7 +1,7 @@
 version: "3"
 networks:
   mynet:
-    driver: overlay
+    driver: bridge
 services:
   db:
     image: mongo:3.0
