@@ -20,7 +20,7 @@ services:
       - ADMIN_USERNAME=admin
       - ADMIN_PASS=irocket123!
       - ADMIN_EMAIL=admin@testhubot.com 
-   ports:
+    ports:
       - 3000:3000
     networks:
       - mynet
