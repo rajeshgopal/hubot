@@ -62,14 +62,14 @@ Resources:
 
                 url = 'http://localhost:3000'
                 input = {'user': 'admin', 'password': 'irocket123!'}
-                login = requests.post(url + '/api/v1/login/', json=input)
+                login = requests.post(url + '/api/v1/login/', data=input)
                 auth = login.json()
                 token = auth['data']['authToken']
                 id = auth['data']['userId']
                 if auth['status'] == 'success':
                   newuser = {'name': 'bot', 'email': 'bot@testhubot.com', 'password': 'hubot123', 'username': 'myhubot', 'roles': ['bot', 'bot']}
                   headers = {'X-Auth-Token': '%s' %token, 'X-User-Id': '%s' %id}
-                  user_create = requests.post(url + '/api/v1/users.create', json=newuser, headers=headers)
+                  user_create = requests.post(url + '/api/v1/users.create', data=newuser, headers=headers)
     
               mode: "000644"
               owner: "root"
