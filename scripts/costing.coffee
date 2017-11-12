@@ -2,7 +2,7 @@
 #   Extract AWS Billing Information from Billing reports stored in S3
 #
 # Commands:
-#   mbot cost report  - Retrieves current month total usage cost of an AWS accoun
+#   hubot cost report  - Retrieves current month total usage cost of an AWS accoun
 AWS = require 'aws-sdk'
 S3 = require('aws-sdk').S3
 CSV  = require 'fast-csv'
