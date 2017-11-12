@@ -36,15 +36,15 @@ Parameters:
   ImageId:
     Description: AMI Id
     Type: String
-    Default: ami-4fffc834
+    Default: ami-6057e21a
   VPCId:
     Description: VPC
     Type: String
-    Default: vpc-171c6f73
+    Default: vpc-f0882895
   Subnet:
     Description: subnetid
     Type: List<AWS::EC2::Subnet::Id>
-    Default: subnet-0b7de936
+    Default: subnet-709f0e7c
 Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
